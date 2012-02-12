@@ -1,0 +1,4 @@
+Perlayer:
+
+Audio player in Perl written as exercise after reading "Higher order perl".
+Currently uses SDL::Mixer; to be moved to another backend asap.
