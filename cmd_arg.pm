@@ -8,10 +8,12 @@ use player;
 use server;
 require list;
 
+
+
 package CMD::Decision;
-use SDL;
 use Term::ReadKey;
 use Data::Dumper;
+use Time::HiRes qw(sleep usleep);
 
 my $add_tracks = sub {
 	my $path = shift;
@@ -56,6 +58,7 @@ my $skip = sub {
 	$stats->set(disliked_after => ($stats->disliked_after." ".$player->('last'))) if ($gained < 0.5);
 	$stats->update();
 	$player->('last', $stats->id);
+#	$player->stop();
 	$alist = List::Lazy::tail($alist);
 	return $alist;
 };
@@ -72,15 +75,15 @@ $next = sub {
 	return undef unless $total;
 	my $index = int(rand($total))+1;
 	my $song = Player::Song::User->retrieve($index);
-	open (my $output, ">", "/tmp/cmus-status");
+	open (my $output, ">", "/tmp/status");
 	print $output $song->title . "- ". $song->artist ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	close $output;
 	print "Playing ". $song->title . " by ". $song->artist ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	my ($volume_gain, $rest) = split(" ", $song->replaygain_track_gain);
-	SDL::Mixer::Music::volume_music(100*(10**($volume_gain/20)));
-	print "Replaygain : adjusted volume to ".SDL::Mixer::Music::volume_music(-1)." \n";
+	my $volume = 100*(10**($volume_gain/20));
+	print "Replaygain : adjusted volume to ".$volume." \n";
 	print "Song score : ".$song->score(Score::score())." \n";
-	my $loaded = SDL::Mixer::Music::load_MUS($song->path);
+	my $loaded = [$song->path, $volume];
 	return List::Lazy::node([$loaded, $song], $next);
 };
 
@@ -94,7 +97,7 @@ my $play = sub {
 	my $player = new Player;
 	my $server = new Server;
 	while (!$player->('quit') && ($plist = $skip->($plist, $player))){
-		SDL::Mixer::Music::play_music(List::Lazy::data($plist)->[0], 0);
+		$player->play(List::Lazy::data($plist)->[0]);
 		$player->('current', List::Lazy::data($plist)->[1]);
 		$player->('playing', 1);
 		$player->('time', 0);
@@ -107,13 +110,11 @@ my $play = sub {
 				print "$key\n";
 				$player->control($key);
 			}
-			$len++ unless $player->('paused');
-			$player->('time', $len/10);
-			open (my $percent, ">", "/home/syslac/.fluxbox/cmus-percent");
+			open (my $percent, ">", "/tmp/status-percent");
 			print $percent int(100*$player->('time')/$player->('current')->length);
 			close $percent;
-			$player->('playing', 0) if(int($len/10) > List::Lazy::data($plist)->[1]->length);
-			SDL::delay(100);
+			$player->control('e') if($player->finished());
+			sleep(0.1);
 		}
 	}
 };
