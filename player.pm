@@ -9,10 +9,12 @@ my (@mplayer_args, $command_fh, $child, $path, $vol);
 sub play {
 	my $self = shift;
 	my $args = shift;
-	my $file = $args->[0];
+	$path = $args->[0];
+	$vol = $args->[1];
+#	my $file = $args->[0];
 	@mplayer_args = (qw/mplayer -nocache -slave -nolirc -really-quiet/);
-	push @mplayer_args, qw/-softvol -volume/, $args->[1];
-	push @mplayer_args, '--', $file;
+	push @mplayer_args, qw/-softvol -volume/, $vol;
+	push @mplayer_args, '--', $path;
 	pipe my($rfh), $command_fh;
 	$child = fork;
 	warn "fork failed $!\n" unless defined $child;
@@ -26,7 +28,7 @@ sub play {
 	}
 	close $rfh;
 	$command_fh->autoflush(1);
-	print "playing $file (process $child)\n";	
+	print "playing $path (process $child)\n";	
 }
 
 sub finished {
@@ -40,6 +42,16 @@ sub pause {
 sub resume {
 	print $command_fh "pause\n";
 }
+
+sub volume {
+	my ($self,$sign) = @_;
+	$vol = ($sign) ? $vol+5 : $vol-5;
+	$vol = 0 if $vol < 0;
+	$vol = 100 if $vol > 100;
+	print $command_fh "volume $vol 1\n";
+	print "Set volume to $vol\n";
+}
+
 
 sub stop {
 	if (defined($child)){
@@ -90,6 +102,12 @@ my %keys = (
 			$self->stop();
 			$self->('playing', 0);
 			$self->('quit', 1);
+		},
+	',' => sub {my $self = shift;
+			$self->volume(0);
+		},
+	'.' => sub {my $self = shift;
+			$self->volume(1);
 		},
 	'+' => sub {my $self = shift;
 			if ($self->('current')->user_score >= 1){
