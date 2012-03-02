@@ -74,6 +74,9 @@ my $paused = 0;
 my $time = 0;
 my $current = undef;
 my $last = 0;
+my @queue = ();
+my $queue = scalar(@queue);
+my $mode = "t";
 my %fields = (
 	quit => \$quit,
 	playing => \$playing,
@@ -81,6 +84,8 @@ my %fields = (
 	'time' => \$time,
 	current => \$current,
 	'last' => \$last,
+	mode => \$mode,
+	queue => \$queue,
 	);
 
 my %keys = (
@@ -93,6 +98,12 @@ my %keys = (
 			$self->stop();
 			$self->('playing', 0);
 			$self->('paused', 0);
+		},
+	a => sub {my $self = shift;
+			$self->('mode', 'a');
+		},
+	t => sub {my $self = shift;
+			$self->('mode', 't');
 		},
 	p => sub {my $self = shift;
 			$self->('paused') ? $self->resume() : $self->pause();
@@ -147,4 +158,15 @@ sub control {
 	return sub{} unless (exists $keys{$key});
 	return $keys{$key}->($self);	
 }
+
+sub enqueue {
+	my ($self, $song) = @_;
+	push @queue, $song;
+}
+
+sub from_queue {
+	return (@queue) ? shift @queue : undef;
+	print Data::Dumper::Dumper(@queue);
+}
+
 }

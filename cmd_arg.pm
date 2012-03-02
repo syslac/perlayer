@@ -46,7 +46,7 @@ my $skip = sub {
 	my $alist = shift;
 	my $player = shift;
 	unless (List::Lazy::data($alist)) {
-		$alist = List::Lazy::tail($alist);
+		$alist = List::Lazy::tail($alist, $player);
 		return $alist;
 	}
 	my $stats = List::Lazy::data($alist)->[1];
@@ -59,7 +59,7 @@ my $skip = sub {
 	$stats->update();
 	$player->('last', $stats->id);
 #	$player->stop();
-	$alist = List::Lazy::tail($alist);
+	$alist = List::Lazy::tail($alist, $player);
 	return $alist;
 };
 
@@ -71,14 +71,28 @@ sub end_song {
 
 my $next;
 $next = sub {
+	my $player = shift;
 	my $total = Player::Song->count() unless $total;
 	return undef unless $total;
-	my $index = int(rand($total))+1;
-	my $song = Player::Song::User->retrieve($index);
+	my $index = undef;
+	$index = $player->from_queue() if $player;
+	my $song = undef;
+	unless(defined($index)){
+		$index = int(rand($total))+1;
+		$song = Player::Song::User->retrieve($index);
+		if ($player && $player->('mode') eq 'a') {
+			my $album = $song->album;
+			foreach my $track ($album->songs) {
+				$player->enqueue($track->id);
+			}
+			$song = Player::Song::User->retrieve($player->from_queue());
+		}
+	}
+	$song = Player::Song::User->retrieve($index) unless(defined($song));
 	open (my $output, ">", "/tmp/status");
-	print $output $song->title . "- ". $song->artist ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
+	print $output $song->title . "- ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	close $output;
-	print "Playing ". $song->title . " by ". $song->artist ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
+	print "Playing ". $song->title . " by ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	my ($volume_gain, $rest) = split(" ", $song->replaygain_track_gain);
 	my $volume = 100*(10**($volume_gain/20));
 	print "Replaygain : adjusted volume to ".$volume." \n";
@@ -88,14 +102,14 @@ $next = sub {
 };
 
 my $play = sub {
+	my $player = new Player;
+	my $server = new Server;
 	my $ilist = List::Lazy::node(undef, $next);
-	my $plist = List::Lazy::l_grep {
+	my $plist = List::Lazy::l_grep( sub {
 		return unless($_[0]);
 		return 1 if ($_[0]->[1]->score(Score::score()) > rand(100));
 		return;
-		} $ilist;
-	my $player = new Player;
-	my $server = new Server;
+		}, $ilist, $player);
 	while (!$player->('quit') && ($plist = $skip->($plist, $player))){
 		$player->play(List::Lazy::data($plist)->[0]);
 		$player->('current', List::Lazy::data($plist)->[1]);

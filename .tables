@@ -1,0 +1,30 @@
+collection
+id=INTEGER PRIMARY KEY UNIQUE
+path=TEXT UNIQUE NOT NULL
+title=TEXT
+album=INTEGER
+artist=INTEGER
+tracknumber=INTEGER
+genre=TEXT
+length=INTEGER
+played=INTEGER
+last_played=INTEGER
+user_score=INTEGER
+time_score=INTEGER
+liked_after=TEXT
+disliked_after=TEXT
+replaygain_track_gain=TEXT
+
+album
+id=INTEGER PRIMARY KEY UNIQUE
+artist=INTEGER
+title=TEXT
+
+artist
+id=INTEGER PRIMARY KEY UNIQUE
+name=TEXT
+
+tags
+id=INTEGER PRIMARY KEY UNIQUE
+name=TEXT
+
