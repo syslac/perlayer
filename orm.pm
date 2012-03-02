@@ -82,6 +82,8 @@ sub create {
 		}
 	}
 	$fields->{"length"} = int(get_mp3info($fields->{"path"})->{'SECS'});
+	$fields->{"tracknumber"} = $fields->{"tracknum"};
+	delete $fields->{"tracknum"};
 	}
 	my $artist = Player::Artist->retrieve( name => $fields->{"artist"});
 	$artist = Player::Artist->create({name => $fields->{"artist"}}) unless $artist;
