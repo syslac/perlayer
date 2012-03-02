@@ -73,14 +73,6 @@ sub create {
 		}
 	}
 	$fields->{"length"} = int($ogg_info->info('length'));
-	my $artist = Player::Artist->retrieve( name => $fields->{"artist"});
-	$artist = Player::Artist->create({name => $fields->{"artist"}}) unless $artist;
-	$fields->{"artist"} = $artist;	
-	my $album = Player::Album->retrieve( title => $fields->{"album"});
-	$album = Player::Album->create( {title => $fields->{"album"}, artist => $artist} ) unless $album;
-	$fields->{"album"} = $album;	
-	warn "Adding ". $fields->{"title"} . " by ". $fields->{"artist"} .";length : ". $fields->{"length"} . "\n";
-	$self->SUPER::create($fields);	
 	}
 	if (lc($ext) eq "mp3"){
 	my $mp3_info = MP3::Info->new($fields->{'path'});
@@ -90,9 +82,15 @@ sub create {
 		}
 	}
 	$fields->{"length"} = int(get_mp3info($fields->{"path"})->{'SECS'});
+	}
+	my $artist = Player::Artist->retrieve( name => $fields->{"artist"});
+	$artist = Player::Artist->create({name => $fields->{"artist"}}) unless $artist;
+	$fields->{"artist"} = $artist;	
+	my $album = Player::Album->retrieve( title => $fields->{"album"});
+	$album = Player::Album->create( {title => $fields->{"album"}, artist => $artist} ) unless $album;
+	$fields->{"album"} = $album;	
 	warn "Adding ". $fields->{"title"} . " by ". $fields->{"artist"} .";length : ". $fields->{"length"} . "\n";
 	$self->SUPER::create($fields);	
-	}
 }
 
 sub score {
