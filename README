@@ -2,3 +2,36 @@ Perlayer:
 
 Audio player in Perl written as exercise after reading "Higher order perl".
 This branch uses Mplayer as backend. Should probably be master branch too.
+
+Dependencies:
+ * Mplayer
+ * DBI
+ * Class::DBI::Sweet
+ * MP3::Info
+ * Ogg::Vorbis::Header
+ * Term::ReadKey 
+
+You can get all these requirements on a Debian-based system with 
+ apt-get install mplayer libdbi-perl libmp3-info-perl libogg-vorbis-header-perl libclass-dbi-sweet-perl libterm-readkey-perl
+
+
+Options:
+ To launch the player simply run
+  perl ogg.pl (or ./ogg.pl, or perl ogg.pl -p)
+ 
+ To add music to your collection, use
+  perl ogg.pl -a /path/to/music
+ 
+
+Commands:
+ The player accepts one-letter commands from standard input. Accepted commands are:
+ 
+ * n : next song (skip)
+ * p : pause player
+ * q : quit
+ * , : Lower volume
+ * . : Increase volume
+ * + : Like song
+ * - : Dislike song
+ * a : Activate album mode (listen to the whole album; shuffle albums)
+ * t : Return to default mode (shuffle single songs)
