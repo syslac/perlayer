@@ -56,6 +56,12 @@ my $skip = sub {
 	$stats->set(time_score => $new_score);
 	$stats->set(liked_after => ($stats->liked_after." ".$player->('last'))) if ($gained >= 0.5);
 	$stats->set(disliked_after => ($stats->disliked_after." ".$player->('last'))) if ($gained < 0.5);
+	my @tags = split(",", $player->('tags')) if $player->('tags');
+	my $album = $stats->album;
+	foreach (@tags) {
+		my $tag = Player::Tag->find_or_create({name => $_});
+		$album->add_to_tags({album => $album, tag => $tag});
+	}
 	$stats->update();
 	$player->('last', $stats->id);
 #	$player->stop();
@@ -78,7 +84,15 @@ $next = sub {
 	$index = $player->from_queue() if $player;
 	my $song = undef;
 	unless(defined($index)){
-		$index = int(rand($total))+1;
+		if ($player && $player->('mood')){
+			my $tag = Player::Tag->search({ name => $player->('mood')});
+			die "You haven't used tag ".$player->('mood')." yet\n" unless $tag;
+			my @albums = map {$_->album} ($tag->next->albums);
+			die "You haven't tagged any album as ".$player->('mood')." yet\n" unless @albums;
+			my $choice = (sort { rand > rand } @albums)[0];
+			$index = ($choice->songs)[0]->id;
+		}
+		$index //= int(rand($total))+1;
 		$song = Player::Song::User->retrieve($index);
 		if ($player && $player->('mode') eq 'a') {
 			my $album = $song->album;
@@ -102,7 +116,13 @@ $next = sub {
 };
 
 my $play = sub {
+	my $mode = shift;
+	$mode //= 't';
+	my $mood = shift;
+	ReadMode 4;
 	my $player = new Player;
+	$player->('mode', $mode);
+	$player->('mood', $mood);
 	my $server = new Server;
 	my $ilist = List::Lazy::node(undef, $next);
 	my $plist = List::Lazy::l_grep( sub {
@@ -131,8 +151,13 @@ my $play = sub {
 			sleep(0.1);
 		}
 	}
+	ReadMode 1;
 };
 
+my $mood = sub {
+	my $mood = shift;
+	$play->('a',$mood);
+};
 
 my $default = sub {
 	my $und = shift;
@@ -143,7 +168,8 @@ my $default = sub {
 {
 	my %args_table = (
 		"a" => [$add_tracks,1],
-		"p" => [$play,0],
+		"p" => [$play,1],
+		"m" => [$mood,1],
 		"default" => [$default,0],
 	);
 

@@ -23,7 +23,7 @@ Player::Album->table('album');
 Player::Album->columns(All => qw/id title artist/ );
 Player::Album->has_many(songs => Player::Song, { order_by => 'tracknumber' });
 Player::Album->has_a(artist => Player::Artist);
-Player::Album->has_many(tags => Player::Tags);
+Player::Album->has_many(tags => Player::Album_Tags);
 
 1;
 
@@ -36,22 +36,22 @@ Player::Artist->has_many(albums => Player::Album);
 
 1;
 
-package Player::Tags;
+package Player::Tag;
 use base Player::ORM;
-Player::Tags->table('tags');
-Player::Tags->columns(All => qw/id name/ );
-Player::Tags->has_many(albums => Player::Album);
+Player::Tag->table('tag');
+Player::Tag->columns(All => qw/id name/ );
+Player::Tag->has_many(albums => Player::Album_Tags);
 
 1;
 
-#package Player::Link_Album_Tag;
-#use base Player::ORM;
-#Player::Link_Album_Tag->table('link_album_tag');
-#Player::Link_Album_Tag->columns(All => qw/tag_id album_id/ );
-#Player::Link_Album_Tag->has_one(album => Player::Album);
-#Player::Link_Album_Tag->has_one(tag => Player::Tag);
-#
-#1;
+package Player::Album_Tags;
+use base Player::ORM;
+Player::Album_Tags->table('album_tags');
+Player::Album_Tags->columns(All => qw/id tag album/ );
+Player::Album_Tags->has_a(album => Player::Album);
+Player::Album_Tags->has_a(tag => Player::Tag);
+
+1;
 
 package Player::Song::User;
 

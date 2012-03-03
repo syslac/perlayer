@@ -3,6 +3,7 @@
 package Player;
 use POSIX ':sys_wait_h';	#for WNOHANG in waitpid
 use Data::Dumper;
+use Term::ReadKey;
 
 my (@mplayer_args, $command_fh, $child, $path, $vol);
 
@@ -76,7 +77,9 @@ my $current = undef;
 my $last = 0;
 my @queue = ();
 my $queue = scalar(@queue);
-my $mode = "t";
+my $mode = '';
+my $tags = '';
+my $mood = '';
 my %fields = (
 	quit => \$quit,
 	playing => \$playing,
@@ -86,6 +89,8 @@ my %fields = (
 	'last' => \$last,
 	mode => \$mode,
 	queue => \$queue,
+	tags => \$tags,
+	mood => \$mood,
 	);
 
 my %keys = (
@@ -101,9 +106,21 @@ my %keys = (
 		},
 	a => sub {my $self = shift;
 			$self->('mode', 'a');
+			print "Switching to album mode \n";
 		},
 	t => sub {my $self = shift;
 			$self->('mode', 't');
+			print "Switching to track mode \n";
+		},
+	c => sub {my $self = shift;
+			return unless ($self->('mode') eq 'a');
+			print "Assing a tag to this album?\n";
+			ReadMode 1;
+			$tags = ReadLine(0);
+			chomp $tags;
+			$self->('tags', $tags);
+			print "Tags assigned: ".$self->('tags')."\n";
+			ReadMode 4;
 		},
 	p => sub {my $self = shift;
 			$self->('paused') ? $self->resume() : $self->pause();

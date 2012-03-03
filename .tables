@@ -24,7 +24,11 @@ artist
 id=INTEGER PRIMARY KEY UNIQUE
 name=TEXT
 
-tags
+tag
 id=INTEGER PRIMARY KEY UNIQUE
 name=TEXT
 
+album_tags
+id=INTEGER PRIMARY KEY UNIQUE
+tag=INTEGER
+album=INTEGER
