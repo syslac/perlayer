@@ -46,3 +46,4 @@ Commands:
  * a : Activate album mode (listen to the whole album; shuffle albums)
  * t : Return to default mode (shuffle single songs)
  * c : Enter mood tag for the album (only works in album mode)
+ * N : In album mode, skip whole album

@@ -99,6 +99,12 @@ my %keys = (
 			$self->('playing', 0);
 			$self->('paused', 0);
 		},
+	N => sub {my $self = shift;
+			@queue = ();
+			$self->skip();
+			$self->('playing', 0);
+			$self->('paused', 0);
+		},
 	e => sub {my $self = shift;
 			$self->stop();
 			$self->('playing', 0);
