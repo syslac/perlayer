@@ -9,10 +9,11 @@ Dependencies:
  * Class::DBI::Sweet
  * MP3::Info
  * Ogg::Vorbis::Header
+ * Audio::FLAC::Header
  * Term::ReadKey 
 
 You can get all these requirements on a Debian-based system with 
- apt-get install mplayer libdbi-perl libmp3-info-perl libogg-vorbis-header-perl libclass-dbi-sweet-perl libterm-readkey-perl
+ apt-get install mplayer libdbi-perl libmp3-info-perl libogg-vorbis-header-perl libaudio-flac-header-perl libclass-dbi-sweet-perl libterm-readkey-perl
 
 Play modes:
  Default: shuffle tracks.
