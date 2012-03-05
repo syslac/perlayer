@@ -28,4 +28,8 @@ sub new {
 	return $server;
 }
 
+sub clean {
+	unlink ".server.txt" or warn "Cannot delete temp server file: possible permission problem?\n";
+}
+
 1;

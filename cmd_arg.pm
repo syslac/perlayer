@@ -151,6 +151,7 @@ my $play = sub {
 			sleep(0.1);
 		}
 	}
+	$server->clean();
 	ReadMode 1;
 };
 
