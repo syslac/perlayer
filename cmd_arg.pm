@@ -29,7 +29,7 @@ my $add_tracks = sub {
 			$file = $dir_path ."/".$file;
 			next if ($file =~ /\.{1,2}$/); 
 			push @dirs, $file if (-d $file);
-			push @candidates, $file if ($file =~ /(.*)?\.(mp3|ogg)$/i);
+			push @candidates, $file if ($file =~ /(.*)?\.(mp3|ogg|flac)$/i);
 		}	
 		close DIR;
 	}

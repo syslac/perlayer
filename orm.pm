@@ -56,6 +56,7 @@ Player::Album_Tags->has_a(tag => Player::Tag);
 package Player::Song::User;
 
 use Ogg::Vorbis::Header;
+use Audio::FLAC::Header;
 use MP3::Info;
 
 our @ISA = (qw/Player::Song/);
@@ -73,6 +74,15 @@ sub create {
 		}
 	}
 	$fields->{"length"} = int($ogg_info->info('length'));
+	}
+	if (lc($ext) eq "flac"){
+	my $flac_info = Audio::FLAC::Header->new($fields->{'path'}) or die "Problems with ". $fields->{'path'} . "\n";
+	foreach my $tag (keys $flac_info->tags() ){
+		if (grep {$_ =~ /$tag/i} @comments){
+			$fields->{lc($tag)} .= ucfirst(lc($flac_info->tags($tag)));
+		}
+	}
+	$fields->{"length"} = int($flac_info->{"trackTotalLengthSeconds"});
 	}
 	if (lc($ext) eq "mp3"){
 	my $mp3_info = MP3::Info->new($fields->{'path'});

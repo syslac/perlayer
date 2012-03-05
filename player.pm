@@ -38,10 +38,12 @@ sub finished {
 
 sub pause {
 	print $command_fh "pause\n";
+	print "## PAUSE ##\n";
 }
 
 sub resume {
 	print $command_fh "pause\n";
+	print "## RESUME ##\n";
 }
 
 sub volume {
