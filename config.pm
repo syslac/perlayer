@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 package Config;
-use Data::Dumper;
 
 {
 	my $db_cfg = ".tables";

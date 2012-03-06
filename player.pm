@@ -2,7 +2,6 @@
 
 package Player;
 use POSIX ':sys_wait_h';	#for WNOHANG in waitpid
-use Data::Dumper;
 use Term::ReadKey;
 
 my (@mplayer_args, $command_fh, $child, $path);

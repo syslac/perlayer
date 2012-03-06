@@ -12,7 +12,6 @@ require list;
 
 package CMD::Decision;
 use Term::ReadKey;
-use Data::Dumper;
 use Time::HiRes qw(sleep usleep);
 
 my $add_tracks = sub {
