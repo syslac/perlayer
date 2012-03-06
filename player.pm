@@ -5,13 +5,14 @@ use POSIX ':sys_wait_h';	#for WNOHANG in waitpid
 use Data::Dumper;
 use Term::ReadKey;
 
-my (@mplayer_args, $command_fh, $child, $path, $vol);
+my (@mplayer_args, $command_fh, $child, $path);
+my $vol = 50;
 
 sub play {
 	my $self = shift;
 	my $args = shift;
 	$path = $args->[0];
-	$vol = $args->[1];
+	$vol = (defined($args->[1])) ? $args->[1]: $vol;
 #	my $file = $args->[0];
 	@mplayer_args = (qw/mplayer -nocache -slave -nolirc -really-quiet/);
 	push @mplayer_args, qw/-softvol -volume/, $vol;
@@ -80,7 +81,6 @@ my $last = 0;
 my @queue = ();
 my $queue = scalar(@queue);
 my $mode = '';
-my $tags = '';
 my $mood = '';
 my %fields = (
 	quit => \$quit,
@@ -91,7 +91,6 @@ my %fields = (
 	'last' => \$last,
 	mode => \$mode,
 	queue => \$queue,
-	tags => \$tags,
 	mood => \$mood,
 	);
 
@@ -126,9 +125,14 @@ my %keys = (
 			ReadMode 1;
 			$tags = ReadLine(0);
 			chomp $tags;
-			$self->('tags', $tags);
-			print "Tags assigned: ".$self->('tags')."\n";
+			print "Tags assigned: ".$tags."\n";
 			ReadMode 4;
+			my @tags = split(",", $tags) if $tags;
+			my $album = $self->('current')->album;
+			foreach (@tags) {
+				my $tag = Player::Tag->find_or_create({name => $_});
+				$album->add_to_tags({album => $album, tag => $tag});
+			}
 		},
 	p => sub {my $self = shift;
 			$self->('paused') ? $self->resume() : $self->pause();
@@ -191,7 +195,6 @@ sub enqueue {
 
 sub from_queue {
 	return (@queue) ? shift @queue : undef;
-	print Data::Dumper::Dumper(@queue);
 }
 
 }

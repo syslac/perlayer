@@ -86,6 +86,7 @@ sub create {
 	}
 	if (lc($ext) eq "mp3"){
 	my $mp3_info = MP3::Info->new($fields->{'path'});
+	print Data::Dumper::Dumper($mp3_info);
 	foreach my $tag (keys %{get_mp3tag($fields->{"path"})}){
 		if (grep {$_ =~ /$tag/i} @comments){
 			$fields->{lc($tag)} .= ucfirst(lc(get_mp3tag($fields->{"path"})->{$tag}));

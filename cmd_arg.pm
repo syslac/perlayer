@@ -56,23 +56,11 @@ my $skip = sub {
 	$stats->set(time_score => $new_score);
 	$stats->set(liked_after => ($stats->liked_after." ".$player->('last'))) if ($gained >= 0.5);
 	$stats->set(disliked_after => ($stats->disliked_after." ".$player->('last'))) if ($gained < 0.5);
-	my @tags = split(",", $player->('tags')) if $player->('tags');
-	my $album = $stats->album;
-	foreach (@tags) {
-		my $tag = Player::Tag->find_or_create({name => $_});
-		$album->add_to_tags({album => $album, tag => $tag});
-	}
 	$stats->update();
 	$player->('last', $stats->id);
 #	$player->stop();
 	$alist = List::Lazy::tail($alist, $player);
 	return $alist;
-};
-
-my $prova :shared = 0;
-
-sub end_song { 
-	return set_playing(0);
 };
 
 my $next;
@@ -108,7 +96,7 @@ $next = sub {
 	close $output;
 	print "Playing ". $song->title . " by ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	my ($volume_gain, $rest) = split(" ", $song->replaygain_track_gain);
-	my $volume = 100*(10**($volume_gain/20));
+	my $volume = defined($volume_gain) ? int(100*(10**($volume_gain/20))) : undef;
 	print "Replaygain : adjusted volume to ".$volume." \n";
 	print "Song score : ".$song->score(Score::score())." \n";
 	my $loaded = [$song->path, $volume];
@@ -130,6 +118,7 @@ my $play = sub {
 		return 1 if ($_[0]->[1]->score(Score::score()) > rand(100));
 		return;
 		}, $ilist, $player);
+	open (my $percent, ">", "/tmp/status-percent");
 	while (!$player->('quit') && ($plist = $skip->($plist, $player))){
 		$player->play(List::Lazy::data($plist)->[0]);
 		$player->('current', List::Lazy::data($plist)->[1]);
@@ -144,13 +133,15 @@ my $play = sub {
 				print "$key\n";
 				$player->control($key);
 			}
-			open (my $percent, ">", "/tmp/status-percent");
+			$player->('time', $len*0.1);
+			$len++;
+			seek ($percent,0,0);
 			print $percent int(100*$player->('time')/$player->('current')->length);
-			close $percent;
 			$player->control('e') if($player->finished());
 			sleep(0.1);
 		}
 	}
+	close $percent;
 	$server->clean();
 	ReadMode 1;
 };
@@ -165,6 +156,11 @@ my $default = sub {
 	warn "Undefined command line option $und, defaulting to play\n";
 	$play->();
 };
+
+sub clean_up {
+	unlink ".server.txt";
+	ReadMode 1;	
+}
 
 {
 	my %args_table = (
