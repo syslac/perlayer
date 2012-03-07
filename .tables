@@ -14,6 +14,12 @@ time_score=INTEGER
 liked_after=TEXT
 disliked_after=TEXT
 replaygain_track_gain=TEXT
+timestamp=INTEGER
+
+folder
+id=INTEGER PRIMARY KEY UNIQUE
+path=TEXT UNIQUE NOT NULL
+timestamp=INTEGER
 
 album
 id=INTEGER PRIMARY KEY UNIQUE

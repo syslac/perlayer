@@ -11,9 +11,17 @@ package Player::Song;
 use base Player::ORM;
 
 Player::Song->table('collection');
-Player::Song->columns(All => qw/id path title album artist tracknumber genre length played last_played user_score time_score liked_after disliked_after replaygain_track_gain/ );
+Player::Song->columns(All => qw/id path title album artist tracknumber genre length played last_played user_score time_score liked_after disliked_after replaygain_track_gain timestamp/ );
 Player::Song->has_a(album => Player::Album);
 Player::Song->has_a(artist => Player::Artist);
+
+1;
+
+package Player::Folder;
+use base Player::ORM;
+Player::Folder->table('folder');
+Player::Folder->columns(All => qw/id path timestamp/ );
+
 
 1;
 
@@ -63,6 +71,12 @@ our @ISA = (qw/Player::Song/);
 
 sub create {
 	my ($self, $fields) = @_;
+	$fields = get_info($fields);
+	$self->SUPER::create($fields);	
+}
+
+sub get_info {
+	my ($fields) = @_;
 	return unless $fields->{'path'};
 	my ($file, $ext) = $fields->{'path'} =~ /(.*)?\.(.*)/;
 	my @comments = ("artist", "title", "album", "genre", "tracknumber", "replaygain_track_gain");
@@ -102,7 +116,21 @@ sub create {
 	$album = Player::Album->create( {title => $fields->{"album"}, artist => $artist} ) unless $album;
 	$fields->{"album"} = $album;	
 	warn "Adding ". $fields->{"title"} . " by ". $fields->{"artist"} .";length : ". $fields->{"length"} . "\n";
-	$self->SUPER::create($fields);	
+	$fields->{"timestamp"} = time();
+
+	return $fields;
+}
+
+sub update_db {
+	my $it = Player::Song::User->retrieve_all;
+	while ($res = $it->next) {
+		next if ($res->timestamp >= (stat($res->path))[9]);
+		print "Updating info for".$res->path."\n";
+		$fields = get_info({ path => $res->path });
+		$res->set(%{$fields});
+		$res->update;
+	}
+	print "Done\n";
 }
 
 sub score {
@@ -115,3 +143,49 @@ sub score {
 	return $score;
 }
 
+1;
+
+package Player::Folder::User;
+
+our @ISA = (qw/Player::Folder/);
+
+sub create {
+	my ($self,$path) = @_;
+	return unless (-d $path);
+	my @dirs = ($path);
+	my @candidates = ();
+	while (@dirs){
+		my $dir_path = shift @dirs;
+		warn "Adding directory ". $dir_path ."\n";
+		my $folder = $self->SUPER::find_or_create({ path => $dir_path });
+		$folder->set( timestamp => time() );
+		$folder->update;
+		opendir (DIR, $dir_path);
+		foreach my $file (readdir DIR){
+			$file = $dir_path ."/".$file;
+			next if ($file =~ /\.{1,2}$/); 
+			push @dirs, $file if (-d $file);
+			push @candidates, $file if ($file =~ /(.*)?\.(mp3|ogg|flac)$/i);
+		}	
+		close DIR;
+	}
+	foreach (@candidates){
+		my $song = Player::Song::User->search({path => $_});
+		print "Skipping $_ : already in collection\n" if $song;
+		Player::Song::User->create({path => $_}) unless $song;
+	}
+}
+
+sub refresh {
+	my $it = Player::Folder::User->retrieve_all;
+	while ($res = $it->next) {
+		next if ($res->timestamp >= (stat($res->path))[9]);
+		print "Updating info for folder ".$res->path."\n";
+		Player::Folder::User->create($res->path);
+		$res->set( timestamp => time() );
+		$res->update;
+	}
+	print "Done\n";
+}
+
+1;

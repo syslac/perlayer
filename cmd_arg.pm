@@ -17,26 +17,7 @@ use Time::HiRes qw(sleep usleep);
 my $add_tracks = sub {
 	my $path = shift;
 	$path =~ s/(.*)?\/$/$1/;
-	return unless (-d $path);
-	my @dirs = ($path);
-	my @candidates = ();
-	while (@dirs){
-		my $dir_path = shift @dirs;
-		warn "Adding directory ". $dir_path ."\n";
-		opendir (DIR, $dir_path);
-		foreach my $file (readdir DIR){
-			$file = $dir_path ."/".$file;
-			next if ($file =~ /\.{1,2}$/); 
-			push @dirs, $file if (-d $file);
-			push @candidates, $file if ($file =~ /(.*)?\.(mp3|ogg|flac)$/i);
-		}	
-		close DIR;
-	}
-	foreach (@candidates){
-		my $song = Player::Song::User->search({path => $_});
-		print "Skipping $_ : already in collection\n" if $song;
-		Player::Song::User->create({path => $_}) unless $song;
-	}
+	Player::Folder::User->create($path);
 };
 
 my $total;

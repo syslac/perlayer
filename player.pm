@@ -142,6 +142,14 @@ my %keys = (
 			$self->('playing', 0);
 			$self->('quit', 1);
 		},
+	u => sub {my $self = shift;
+			print "Checking songs for new tags...\n";
+			Player::Song::User->update_db();
+		},
+	r => sub {my $self = shift;
+			print "Checking folders for new songs...\n";
+			Player::Folder::User->refresh();
+		},
 	',' => sub {my $self = shift;
 			$self->volume(0);
 		},
