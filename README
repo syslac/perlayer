@@ -48,3 +48,11 @@ Commands:
  * t : Return to default mode (shuffle single songs)
  * c : Enter mood tag for the album (only works in album mode)
  * N : In album mode, skip whole album
+ * r : Reread directories in collection, to check for new songs
+ * u : Update info on songs in collection (e.g. if you changed tags in the meanwhile)
+
+Config file:
+ * .config:
+	Edit the "startup" section to define which commands will be executed at startup
+	(default is a collection update with "r" and "u")
+	The "config" section is not parsed yet.
