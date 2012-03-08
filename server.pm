@@ -4,9 +4,9 @@ package Server;
 
 sub new {
 	my $class = shift;
-	open(my $clean, ">", ".server.txt") or die "Cannot open file";
-	print $clean "";
-	close $clean;
+#	open(my $clean, ">", ".server.txt") or die "Cannot open file";
+#	print $clean "";
+#	close $clean;
 	open (my $fh , "<", ".server.txt") or die "Cannot open file";
 	my $last_mod = 0;
 	my $continue = 0;

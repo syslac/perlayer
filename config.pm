@@ -9,21 +9,37 @@ package Config;
 	my $db_cfg = ".tables";
 	my $cfg = ".config";
 
-sub generate_sql {
-	open(my $cfg, "<", $db_cfg);
+sub parse_file {
+	my $what = shift;
+	open(my $cfg, "<", $what);
 	my @file = <$cfg>;
 	my $file = join("", @file);
 	my @tables = split("\n\n", $file);
-	my %output;
+	my $output = {};
 	foreach my $table (@tables) {
 		my @lines = split("\n", $table);
 		my $name = shift @lines;
-		$output{$name} .= "CREATE TABLE IF NOT EXISTS `".$name."` (\n";
+		$output->{$name} = {};
 		foreach my $field (@lines) {
-			$output{$name} .= "`".join("` ", split("=", $field))." ,\n";
+			$field =~ s/(.*)\#.*/$1/;
+			my ($k,$v) = split(/\s*=\s*/, $field);
+			$output->{$name}->{$k} = $v;
 		}
-		($output{$name}) =~ s/\,\n$/\n/;
-		$output{$name} .= ")";
+	}
+	return $output;
+}
+
+
+sub generate_sql {
+	my $parsed = parse_file($db_cfg);
+	my %output = ();
+	foreach my $table (keys %{$parsed}) {
+		$output{$table} .= "CREATE TABLE IF NOT EXISTS `".$table."` (\n";
+		while (my($f,$p) = each %{$parsed->{$table}}) {
+			$output{$table} .= "`".$f."` ".$p." ,\n";
+		}
+		($output{$table}) =~ s/\,\n$/\n/;
+		$output{$table} .= ")";
 	}
 	return \%output;
 }
@@ -34,6 +50,15 @@ sub init_db {
 	foreach (keys %{$queries}) {
 		$dbi->do($queries->{$_});
 	}
+}
+
+sub startup_commands {
+	my $cmd = (parse_file($cfg))->{"startup"};
+	open(my $srv, ">", ".server.txt");
+	while(my($k,$v) = each($cmd)) {
+		print $srv $k."\n" if $v;
+	}
+	close $srv;
 }
 
 }

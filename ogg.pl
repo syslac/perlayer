@@ -14,9 +14,11 @@ use DBI;
 ###
 my $dbh = DBI->connect("dbi:SQLite:dbname=player_stats","","");
 Config::init_db($dbh);
+Config::startup_commands();
 
-$SIG{__DIE__} = CMD::Decision::clean_up();
+$SIG{__DIE__} =  sub { &CMD::Decision::clean_up(); };
 
+open(my $a, "<", ".server.txt") or die "Arghhhh!\n";
 my $callback = CMD::Decision::get_callback(@ARGV);
 $callback->[0]->($callback->[1]);
 
