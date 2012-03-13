@@ -50,6 +50,7 @@ Commands:
  * N : In album mode, skip whole album
  * r : Reread directories in collection, to check for new songs
  * u : Update info on songs in collection (e.g. if you changed tags in the meanwhile)
+ * s : Search by name: album or track name depending on player mode: results will be put in queue
 
 Config file:
  * .config:

@@ -1,7 +1,8 @@
-* /tmp/files creation not working, or at least not updating percentage (FIXED - confirm pending)
+* /tmp/files creation not working, or at least not updating percentage (FIXED - CLOSED)
 * Tags should be added on-the-fly, not at next song (as votes do) (FIXED - CLOSED)
-* Keep current volume at song switch if replaygain tag is not set (FIXED - confirm pending)
-* On crash, call cleanup; at least set ReadMode back to 1 (FIXED - confirm pending)
-* Get album and track mode to use totally different callbacks
-* Notice when files changed and rebuild database if they did.
+* Keep current volume at song switch if replaygain tag is not set (FIXED - CLOSED)
+* On crash, call cleanup; at least set ReadMode back to 1 (FIXED - CLOSED)
+* Get album and track mode to use totally different callbacks (PENDING)
+* Notice when files changed and rebuild database if they did (FIXED - CLOSED)
+* Search by name features missing (FIXED - CLOSED)
 

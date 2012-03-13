@@ -118,6 +118,28 @@ my %keys = (
 			$self->('mode', 't');
 			print "Switching to track mode \n";
 		},
+	s => sub {my $self = shift;
+			while ($self->from_queue()) {}
+			print "Search by name:\n";
+			ReadMode 1;
+			$search = ReadLine(0);
+			chomp $search;
+			ReadMode 4;
+			my @result = ();
+			if ($self->('mode') eq 'a') {
+				@album = Player::Album->search_like(title => '%'.$search.'%');
+				foreach (@album){
+					push @result, $_->songs;
+				}
+			}
+			if ($self->('mode') eq 't') {
+				@result = Player::Song::User->search_like(title => '%'.$search.'%');
+			}
+			foreach (@result){
+				$self->enqueue($_->id);
+				print "Found ".$_->title." and put in queue\n";
+			}
+		},
 	c => sub {my $self = shift;
 			return unless ($self->('mode') eq 'a');
 			print "Assing a tag to this album?\n";
