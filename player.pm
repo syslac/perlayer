@@ -100,10 +100,14 @@ my %keys = (
 			$self->('paused', 0);
 		},
 	N => sub {my $self = shift;
-			@queue = ();
+			my $album = $self->('current')->album;
 			$self->skip();
 			$self->('playing', 0);
 			$self->('paused', 0);
+			return unless @queue;
+			while (Player::Song::User->retrieve($self->from_queue())->album == $album) {
+				return unless @queue;
+			}
 		},
 	e => sub {my $self = shift;
 			$self->stop();

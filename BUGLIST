@@ -5,4 +5,6 @@
 * Get album and track mode to use totally different callbacks (PENDING)
 * Notice when files changed and rebuild database if they did (FIXED - CLOSED)
 * Search by name features missing (FIXED - CLOSED)
+* Unknown bug in adding songs (PENDING)
+* Clear album no longer works as expected with new search queue (FIXED - CLOSED)
 
