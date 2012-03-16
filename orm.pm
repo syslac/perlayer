@@ -100,12 +100,16 @@ sub get_info {
 	}
 	if (lc($ext) eq "mp3"){
 	my $mp3_info = MP3::Info->new($fields->{'path'});
-	foreach my $tag (keys %{get_mp3tag($fields->{"path"})}){
+	my $mp3_tags = get_mp3tag($fields->{"path"});
+	$mp3_tags //= {};
+	foreach my $tag (keys %{$mp3_tags}){
 		if (grep {$_ =~ /$tag/i} @comments){
 			$fields->{lc($tag)} .= ucfirst(lc(get_mp3tag($fields->{"path"})->{$tag}));
 		}
 	}
-	$fields->{"length"} = int(get_mp3info($fields->{"path"})->{'SECS'});
+	$more_info = get_mp3info($fields->{"path"});
+	$more_info //= {};
+	$fields->{"length"} = int($more_info->{'SECS'});
 	$fields->{"tracknumber"} = $fields->{"tracknum"};
 	delete $fields->{"tracknum"};
 	}

@@ -18,7 +18,7 @@ Config::startup_commands();
 
 $SIG{__DIE__} =  sub { &CMD::Decision::clean_up(); };
 
-open(my $a, "<", ".server.txt") or die "Arghhhh!\n";
 my $callback = CMD::Decision::get_callback(@ARGV);
 $callback->[0]->($callback->[1]);
 
+CMD::Decision::clean_up();

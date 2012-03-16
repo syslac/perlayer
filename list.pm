@@ -12,7 +12,7 @@ sub node {
 }
 
 sub data {
-	my $node = shift;
+	my $node = shift or die "No data in playlist";
 	return $node->[0];
 }
 
