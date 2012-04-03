@@ -128,6 +128,11 @@ sub get_info {
 sub update_db {
 	my $it = Player::Song::User->retrieve_all;
 	while ($res = $it->next) {
+		if (not (-e $res->path)){
+			print "Cleaning record associated to no longer existsing file". $res->path."\n";
+			$res->delete;
+			next;
+		}
 		next if ($res->timestamp >= (stat($res->path))[9]);
 		print "Updating info for".$res->path."\n";
 		$fields = get_info({ path => $res->path });
@@ -135,6 +140,9 @@ sub update_db {
 		$res->update;
 	}
 	print "Done\n";
+}
+
+sub clean_{
 }
 
 sub score {

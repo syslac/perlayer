@@ -11,3 +11,4 @@
 * Get startup mode to be user-configurable
 * Add stats
 * Always skips first song (FIXED for albums)
+* Notice when fils no longer exist, or have been moved (FIXED - CLOSED)
