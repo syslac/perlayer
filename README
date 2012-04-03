@@ -57,3 +57,6 @@ Config file:
 	Edit the "startup" section to define which commands will be executed at startup
 	(default is a collection update with "r" and "u")
 	The "config" section is not parsed yet.
+	Edit the "score" section to change weights for song scoring
+	(absolute values do not matter, they will be scaled so that their sum is always 100)
+
