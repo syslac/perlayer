@@ -15,6 +15,7 @@ use DBI;
 my $dbh = DBI->connect("dbi:SQLite:dbname=player_stats","","");
 Config::init_db($dbh);
 Config::startup_commands();
+Config::read_weights();
 
 $SIG{__DIE__} =  sub { &CMD::Decision::clean_up(); };
 

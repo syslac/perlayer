@@ -4,10 +4,12 @@ use strict;
 use warnings;
 
 package Config;
+use List::Util qw(sum);
 
 {
 	my $db_cfg = ".tables";
 	my $cfg = ".config";
+	my %weights = ();
 
 sub parse_file {
 	my $what = shift;
@@ -59,6 +61,20 @@ sub startup_commands {
 		print $srv $k."\n" if $v;
 	}
 	close $srv;
+}
+
+sub read_weights {
+	my $w = (parse_file($cfg))->{"score"};
+	%weights = %$w;
+	$weights{"played"} //= 10;
+	$weights{"last_played"} //= 50;
+	$weights{"user_score"} //= 30;
+	$weights{"time_score"} //= 20;
+}
+
+sub get_weight {
+	my $field = shift;
+	return int($weights{$field}*100/sum(values(%weights)));
 }
 
 }

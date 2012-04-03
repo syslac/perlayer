@@ -2,11 +2,12 @@
 * Tags should be added on-the-fly, not at next song (as votes do) (FIXED - CLOSED)
 * Keep current volume at song switch if replaygain tag is not set (FIXED - CLOSED)
 * On crash, call cleanup; at least set ReadMode back to 1 (FIXED - CLOSED)
-* Get album and track mode to use totally different callbacks (partly fixed)
+* Get album and track mode to use totally different callbacks (partly FIXED)
 * Notice when files changed and rebuild database if they did (FIXED - CLOSED)
 * Search by name features missing (FIXED - CLOSED)
 * Unknown bug in adding songs (FIXED - CLOSED)
 * Clear album no longer works as expected with new search queue (FIXED - CLOSED)
-* Get score system to be user-configurable
+* Get score system to be user-configurable (FIXED - CLOSED)
 * Get startup mode to be user-configurable
 * Add stats
+* Always skips first song (FIXED for albums)

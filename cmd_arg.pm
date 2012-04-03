@@ -90,13 +90,12 @@ my $play = sub {
 	my $player = new Player;
 	$player->('mode', $mode);
 	$player->('mood', $mood);
-	my $ilist = List::Lazy::node(undef,$next);
-	my $plist = List::Lazy::l_grep( sub {
+	my $plist = ($mode eq 'a') ? List::Lazy::node(undef,$next) : 
+		List::Lazy::l_grep( sub {
 		return unless($_[0]);
 		return 1 if ($_[0]->[1]->score(Score::score()) > rand(100));
 		return;
-		}, $ilist, $player);
-	$plist = ($mode eq 'a') ? $ilist : $plist;
+		}, List::Lazy::node(undef,$next), $player);
 	ReadMode 4;
 	my $server = new Server;
 	open (my $percent, ">", "/tmp/status-percent");
