@@ -8,7 +8,7 @@
 * Unknown bug in adding songs (FIXED - CLOSED)
 * Clear album no longer works as expected with new search queue (FIXED - CLOSED)
 * Get score system to be user-configurable (FIXED - CLOSED)
-* Get startup mode to be user-configurable
+* Get startup mode to be user-configurable (FIXED - CLOSED)
 * Add stats
 * Always skips first song (FIXED for albums)
 * Notice when fils no longer exist, or have been moved (FIXED - CLOSED)

@@ -63,6 +63,16 @@ sub startup_commands {
 	close $srv;
 }
 
+sub startup_mode {
+	my $cmd = (parse_file($cfg))->{"config"};
+	my($k,$v) = each($cmd);
+	return [] unless ($k and $k eq 'mode');
+	return ['-p','a'] if ($v =~ /^a/);
+	return ['-p'] if ($v =~ /^t/);
+	return ['-m',''] if ($v =~ /^m/);
+	return [];
+}
+
 sub read_weights {
 	my $w = (parse_file($cfg))->{"score"};
 	%weights = %$w;

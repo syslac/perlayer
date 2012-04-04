@@ -19,6 +19,7 @@ Config::read_weights();
 
 $SIG{__DIE__} =  sub { &CMD::Decision::clean_up(); };
 
+@ARGV = @{Config::startup_mode()} unless @ARGV;
 my $callback = CMD::Decision::get_callback(@ARGV);
 $callback->[0]->($callback->[1]);
 
