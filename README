@@ -45,6 +45,7 @@ Commands:
  * n : next song (skip)
  * p : pause player
  * q : quit
+ * Q : quit after this song
  * , : Lower volume
  * . : Increase volume
  * + : Like song

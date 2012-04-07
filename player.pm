@@ -168,6 +168,10 @@ my %keys = (
 			$self->('playing', 0);
 			$self->('quit', 1);
 		},
+	Q => sub {my $self = shift;
+			$self->('paused', 0);
+			$self->('quit', 1);
+		},
 	u => sub {my $self = shift;
 			print "Checking songs for new tags...\n";
 			Player::Song::User->update_db();
