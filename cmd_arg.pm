@@ -131,6 +131,23 @@ my $mood = sub {
 	$play->('a',$mood);
 };
 
+my $stats = sub {
+	my $top = shift;
+	$top //= 'a';
+	if ($top eq 'a'){
+		Player::Album->top5();
+	}
+	elsif ($top eq 't'){
+		Player::Song->top5();
+	}
+	elsif ($top eq 'p'){
+		Player::Artist->top5();
+	}
+	else {
+		Player::Album->top5();
+	}
+};
+
 my $default = sub {
 	my $und = shift;
 	warn "Undefined command line option $und, defaulting to play\n";
@@ -147,6 +164,7 @@ sub clean_up {
 		"a" => [$add_tracks,1],
 		"p" => [$play,1],
 		"m" => [$mood,1],
+		"s" => [$stats,1],
 		"default" => [$default,0],
 	);
 

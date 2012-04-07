@@ -2,8 +2,68 @@
 
 package Player::ORM;
 use base Class::DBI::Sweet;
+use Data::Dumper;
 
 Player::ORM->connection('dbi:SQLite:dbname=player_stats');
+
+sub top5{
+	my ($self, $it, $namefield) = @_;
+	my %sortby = ("Best by playcount" => sub {
+		my $element = shift;
+		my $score = 0;
+		@songs = $element->songs;
+		foreach (@songs){
+			$score += $_->played;
+		}
+		return $score;
+	},
+	"Best by average rating" => sub {
+		my $element = shift;
+		my $score = 0;
+		@songs = $element->songs;
+		my $n = scalar(@songs);
+		foreach (@songs){
+			$us = $_->user_score;
+			$us //= 0;
+			$score += $us;
+		}
+		return 0 unless $n;
+		return $score/$n;
+	},
+	"Best by Reddit-like rating" => sub {
+		my $element = shift;
+		my $score = 0;
+		@songs = $element->songs;
+		my $n = 0;
+		my $p = 0;
+		foreach (@songs){
+			$us = $_->user_score;
+			$us //= 0;
+			$p += $us;
+			$n++ if($us != 0);
+		}
+		return 0 if ($n == 0);
+		$p = $p/$n;
+		$score = ($p + 1.96*1.96/$n - 1.96*sqrt(($p*(1-$p) + 1.96*1.96/(4*$n))/$n))/(1 + 1.96*1.96/$n);
+		return $score;
+	});
+	my %top = ();
+	while (my $res = $it->next) {
+		my %score;
+		while (my ($name,$proc) = each(%sortby)){
+			$top{$name} //= [];
+			$score{$name} = $sortby{$name}->($res);
+			push @{$top{$name}}, [$res->$namefield, $score{$name}];
+			@{$top{$name}}	= (@{$top{$name}} <= 5) ? @{$top{$name}} : (sort {$b->[1] <=> $a->[1]} @{$top{$name}})[0..5];
+		}
+	}
+	while (my ($name,$list) = each(%top)){
+		print "  * $name: \n";
+		foreach (@$list){
+			print join(":\t", @{$_})."\n";
+		}
+	}
+}
 
 1;
 
@@ -14,6 +74,18 @@ Player::Song->table('collection');
 Player::Song->columns(All => qw/id path title album artist tracknumber genre length played last_played user_score time_score liked_after disliked_after replaygain_track_gain timestamp/ );
 Player::Song->has_a(album => Player::Album);
 Player::Song->has_a(artist => Player::Artist);
+
+sub top5 {
+	my $self = shift;
+	my @top = $self->retrieve_from_sql(qq{
+		id >= 1
+		ORDER BY played DESC
+		LIMIT 5
+	});
+	foreach (@top){
+		print $_->title.":\t".$_->played."\n";
+	}
+}
 
 1;
 
@@ -33,6 +105,13 @@ Player::Album->has_many(songs => Player::Song, { order_by => 'tracknumber' });
 Player::Album->has_a(artist => Player::Artist);
 Player::Album->has_many(tags => Player::Album_Tags);
 
+sub top5 {
+	my $self = shift;
+	my $column = "title";
+	my $it = $self->retrieve_all;
+	$self->SUPER::top5($it,$column);
+}
+
 1;
 
 package Player::Artist;
@@ -41,6 +120,13 @@ Player::Artist->table('artist');
 Player::Artist->columns(All => qw/id name/ );
 Player::Artist->has_many(songs => Player::Song);
 Player::Artist->has_many(albums => Player::Album);
+
+sub top5 {
+	my $self = shift;
+	my $column = "name";
+	my $it = $self->retrieve_all;
+	$self->SUPER::top5($it,$column);
+}
 
 1;
 

@@ -32,6 +32,11 @@ Options:
 
  You can run the player in "mood mode":
   perl ogg.pl -m happy
+
+ To get some simple stats about listening preferences run:
+  perl ogg.pl -s (or -s a: album stats)
+  perl ogg.pl -s p (artist stats)
+  perl ogg.pl -s t (tracks stats)
  
 
 Commands:
