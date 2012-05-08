@@ -1,0 +1,114 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+use player;
+use orm;
+use cmd_arg;
+use config;
+
+app->sessions->default_expiration(86400);
+
+helper control => sub {
+  my ($self,$command,$else) = @_;
+  $else //= sub {};
+
+  if($self->session('child')){
+	open (my $cmd, '>>', '.server.txt');
+  	print $cmd $command."\n";
+  	close $cmd;
+  }
+  else{
+	  print "Player not running!";
+	  $else->();
+  }
+};
+
+get '/' => sub {
+  my $self = shift;
+  my $clear_session = sub {
+	$self->session(state => 'paused');	  
+	$self->session(to => 'play');
+  };
+  $self->control('', $clear_session);
+  $self->session->{state} //= 'paused';
+  $self->session->{to} //= 'play';
+  $self->render('index');
+};
+
+get '/play' => sub {
+  my $self = shift;
+  $self->session(state => 'playing');
+  $self->session(to => 'pause');
+  my $new_player = sub {
+#	my $dbh = DBI->connect("dbi:SQLite:dbname=player_stats","","");
+#	Config::init_db($dbh);
+#	Config::startup_commands();
+#	Config::read_weights();
+#	
+#	$SIG{__DIE__} =  sub { &CMD::Decision::clean_up(); };
+#
+#	@ARGV = @{Config::startup_mode()} unless @ARGV;
+#	my $callback = CMD::Decision::get_callback(@ARGV);
+	my $child = fork;
+	if ($child == 0){
+		exec('perl ogg.pl');
+		exit;
+#		$callback->[0]->($callback->[1]);
+	}
+	$self->session(child => $child);
+  };
+  $self->control('p',$new_player);
+
+  $self->redirect_to('/');
+};
+
+get '/pause' => sub {
+  my $self = shift;
+  $self->session(state => 'paused');
+  $self->session(to => 'play');
+  $self->control('p');
+  $self->redirect_to('/');
+};
+
+get '/quit' => sub {
+  my $self = shift;
+  $self->session->{state} = 'paused';
+  $self->session->{to} = 'play';
+  $self->control('q');
+  delete $self->session->{child};
+  $self->redirect_to('/');
+};
+
+app->start;
+
+__DATA__
+
+@@ index.html.ep
+% layout 'w_quit';
+% content 
+Player is <%= session 'state' %>
+%= form_for session('to') => begin
+	%= submit_button session('to')
+%= end;
+
+@@ layouts/w_quit.html.ep
+%= content
+%= form_for '/quit' => begin
+	%= submit_button 'quit'
+%= end
+
+@@ form_play.html.ep
+%= form_for '/play' => begin
+	%= submit_button 'Play'
+%= end
+
+@@ form_pause.html.ep
+%= form_for '/pause' => begin
+	%= submit_button 'Pause'
+% end
+
+@@ layouts/default.html.ep
+<!DOCTYPE html>
+<html>
+  <head><title><%= title %></title></head>
+  <body><%= content %></body>
+</html>
