@@ -38,12 +38,12 @@ sub finished {
 
 sub pause {
 	print $command_fh "pause\n";
-	print "## PAUSE ##\n";
+#	print "## PAUSE ##\n";
 }
 
 sub resume {
 	print $command_fh "pause\n";
-	print "## RESUME ##\n";
+#	print "## RESUME ##\n";
 }
 
 sub volume {
@@ -179,6 +179,14 @@ my %keys = (
 	r => sub {my $self = shift;
 			print "Checking folders for new songs...\n";
 			Player::Folder::User->refresh();
+		},
+	i => sub {my $self = shift;
+			if ($self->('mode') eq 'a'){
+				Player::Album->top5();
+			}
+			elsif ($self->('mode') eq 't'){
+				Player::Song->top5();
+			}
 		},
 	',' => sub {my $self = shift;
 			$self->volume(0);
