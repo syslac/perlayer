@@ -201,7 +201,7 @@ my %keys = (
 			}
 			$self->('current')->set(user_score => ($self->('current')->user_score+0.1));
 			$self->('current')->update;
-			print "Liked song; now rated : ". $self->('current')->user_score ."\n";
+#			print "Liked song; now rated : ". $self->('current')->user_score ."\n";
 		},
 	'-' => sub {my $self = shift;
 			if ($self->('current')->user_score <= 0){
@@ -210,7 +210,7 @@ my %keys = (
 			}
 			$self->('current')->set(user_score => ($self->('current')->user_score-0.1));
 			$self->('current')->update;
-			print "Disliked song; now rated : ". $self->('current')->user_score ."\n";
+#			print "Disliked song; now rated : ". $self->('current')->user_score ."\n";
 		},
 	);
 

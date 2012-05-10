@@ -7,6 +7,7 @@ use score;
 use player;
 use server;
 use POSIX qw/floor ceil/;
+use utf8;
 require list;
 
 
@@ -76,6 +77,7 @@ $next = sub {
 	print $output $song->title . "- ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	close $output;
 	print "\nPlaying ". $song->title . " by ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
+	$song->user_score(0) unless defined($song->user_score);
 	my ($volume_gain, $rest) = split(" ", $song->replaygain_track_gain);
 	my $volume = defined($volume_gain) ? int(100*(10**($volume_gain/20))) : undef;
 	print "Replaygain : adjusted volume to ".$volume." \n";
@@ -119,9 +121,11 @@ my $play = sub {
 			seek ($percent,0,0);
 			my $perc = int(100*$player->('time')/$player->('current')->length);
 			print $percent $perc;
-			print "\b"x56;
+			print "\b"x70;
 			print "|"."#"x(POSIX::ceil($perc/2))."-"x(POSIX::floor((100-$perc)/2))."|";
-			print '('.($player->('paused') ? '||' : ' >').')';
+			print '('.($player->('paused') ? '||' : ' ▸').')';
+			print "    ".'★'x(10*$player->('current')->user_score);
+			print '☆'x(10-10*$player->('current')->user_score);
 			$player->control('e') if($player->finished());
 			sleep(0.1);
 		}
