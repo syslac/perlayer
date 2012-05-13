@@ -29,7 +29,7 @@ sub play {
 	}
 	close $rfh;
 	$command_fh->autoflush(1);
-	print "playing $path (process $child)\n";	
+#	print "playing $path (process $child)\n";	
 }
 
 sub finished {
@@ -81,6 +81,7 @@ my @queue = ();
 my $queue = scalar(@queue);
 my $mode = '';
 my $mood = '';
+my $verbose = 0;
 my %fields = (
 	quit => \$quit,
 	playing => \$playing,
@@ -91,6 +92,7 @@ my %fields = (
 	mode => \$mode,
 	queue => \$queue,
 	mood => \$mood,
+	verbose => \$verbose,
 	);
 
 my %keys = (

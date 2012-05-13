@@ -65,12 +65,20 @@ sub startup_commands {
 
 sub startup_mode {
 	my $cmd = (parse_file($cfg))->{"config"};
-	my($k,$v) = each($cmd);
-	return [] unless ($k and $k eq 'mode');
-	return ['-p','a'] if ($v =~ /^a/);
-	return ['-p'] if ($v =~ /^t/);
-	return ['-m',''] if ($v =~ /^m/);
+	while (my($k,$v) = each($cmd)){
+		next unless ($k and $k eq 'mode');
+		return ['-p','a'] if ($v =~ /^a/);
+		return ['-p'] if ($v =~ /^t/);
+		return ['-m',''] if ($v =~ /^m/);
+	}
 	return [];
+}
+
+sub verbose {
+	my $cmd = (parse_file($cfg))->{"config"};
+	my($k,$v) = each($cmd);
+	return 0 unless ($k and $k eq 'verbose');
+	return $v;
 }
 
 sub read_weights {

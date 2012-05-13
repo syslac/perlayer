@@ -6,6 +6,7 @@ use orm;
 use score;
 use player;
 use server;
+use config;
 use POSIX qw/floor ceil/;
 use utf8;
 require list;
@@ -74,14 +75,14 @@ $next = sub {
 	}
 	$song = Player::Song::User->retrieve($index) unless(defined($song));
 	open (my $output, ">", "/tmp/status");
-	print $output $song->title . "- ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
+	print $output "\nPlaying ". $song->title . " by ". $song->artist->name ." (". $song->album->title.") (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	close $output;
-	print "\nPlaying ". $song->title . " by ". $song->artist->name ." (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
+	print "\nPlaying ". $song->title . " by ". $song->artist->name ." (". $song->album->title.") (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	$song->user_score(0) unless defined($song->user_score);
 	my ($volume_gain, $rest) = split(" ", $song->replaygain_track_gain);
 	my $volume = defined($volume_gain) ? int(100*(10**($volume_gain/20))) : undef;
-	print "Replaygain : adjusted volume to ".$volume." \n";
-	print "Song score : ".$song->score(Score::score())." \n";
+	print "Replaygain : adjusted volume to ".$volume." \n" if $player->('verbose');
+	print "Song score : ".$song->score(Score::score())." \n" if $player->('verbose');
 	my $loaded = [$song->path, $volume];
 	return List::Lazy::node([$loaded, $song], $next);
 };
@@ -93,6 +94,7 @@ my $play = sub {
 	my $player = new Player;
 	$player->('mode', $mode);
 	$player->('mood', $mood);
+	$player->('verbose', Config::verbose());
 	my $plist = ($mode eq 'a') ? List::Lazy::node(undef,$next) : 
 		List::Lazy::l_grep( sub {
 		return unless($_[0]);
