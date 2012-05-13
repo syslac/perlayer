@@ -76,9 +76,10 @@ sub startup_mode {
 
 sub verbose {
 	my $cmd = (parse_file($cfg))->{"config"};
-	my($k,$v) = each($cmd);
-	return 0 unless ($k and $k eq 'verbose');
-	return $v;
+	while (my($k,$v) = each($cmd)){
+	return $v if ($k and $k eq 'verbose');
+	}
+	return 0;
 }
 
 sub read_weights {
