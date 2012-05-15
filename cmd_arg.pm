@@ -74,8 +74,8 @@ $next = sub {
 		}
 	}
 	$song = Player::Song::User->retrieve($index) unless(defined($song));
-	open (my $output, ">", "/tmp/status");
-	print $output "\nPlaying ". $song->title . " by ". $song->artist->name ." (". $song->album->title.") (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
+	open (my $output, ">", ".current_status");
+	print $output $song->title . "::". $song->artist->name ."::". $song->album->title."::". int($song->length/60) .":". sprintf("%02d", $song->length%60). "::00::". $player->('paused');
 	close $output;
 	print "\nPlaying ". $song->title . " by ". $song->artist->name ." (". $song->album->title.") (". int($song->length/60) .":". sprintf("%02d", $song->length%60) .")\n";
 	$song->user_score(0) unless defined($song->user_score);
@@ -103,7 +103,7 @@ my $play = sub {
 		}, List::Lazy::node(undef,$next), $player);
 	ReadMode 4;
 	my $server = new Server;
-	open (my $percent, ">", "/tmp/status-percent");
+	open (my $percent, "+>", ".current_status");
 	while (!$player->('quit') && ($plist = $skip->($plist, $player))){
 		$player->play(List::Lazy::data($plist)->[0]);
 		$player->('current', List::Lazy::data($plist)->[1]);
@@ -120,9 +120,11 @@ my $play = sub {
 			}
 			$player->('time', $len*0.1);
 			$len++ unless $player->('paused');
-			seek ($percent,0,0);
 			my $perc = int(100*$player->('time')/$player->('current')->length);
-			print $percent $perc;
+			print tell($percent)."\n";
+			seek($percent,-5,2);
+			print tell($percent)."\n";
+			print $percent sprintf("%02d", $perc)."::". $player->('paused');
 			print "\b"x70;
 			print "|"."#"x(POSIX::ceil($perc/2))."-"x(POSIX::floor((100-$perc)/2))."|";
 			print '('.($player->('paused') ? '||' : ' ▸').')';
@@ -167,6 +169,7 @@ my $default = sub {
 
 sub clean_up {
 	unlink ".server.txt";
+	unlink ".current_status";
 	ReadMode 1;	
 }
 
