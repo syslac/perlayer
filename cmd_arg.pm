@@ -121,9 +121,7 @@ my $play = sub {
 			$player->('time', $len*0.1);
 			$len++ unless $player->('paused');
 			my $perc = int(100*$player->('time')/$player->('current')->length);
-			print tell($percent)."\n";
 			seek($percent,-5,2);
-			print tell($percent)."\n";
 			print $percent sprintf("%02d", $perc)."::". $player->('paused');
 			print "\b"x70;
 			print "|"."#"x(POSIX::ceil($perc/2))."-"x(POSIX::floor((100-$perc)/2))."|";
