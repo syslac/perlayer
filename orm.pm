@@ -149,7 +149,7 @@ Player::Album_Tags->has_a(tag => Player::Tag);
 
 package Player::Song::User;
 
-use Ogg::Vorbis::Header;
+use Ogg::Vorbis::Header::PurePerl;
 use Audio::FLAC::Header;
 use MP3::Info;
 

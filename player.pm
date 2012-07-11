@@ -126,7 +126,7 @@ my %keys = (
 		},
 	s => sub {my $self = shift;
 			while ($self->from_queue()) {}
-			print "Search by name:\n";
+			print "\nSearch by name:\n";
 			ReadMode 1;
 			$search = ReadLine(0);
 			chomp $search;
