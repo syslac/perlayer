@@ -10,6 +10,7 @@ use warnings;
 use DBI;
 use utf8;
 use open ':encoding(UTF-8)', ':std';
+no warnings 'unintialized';
 
 ###
 # DB Init

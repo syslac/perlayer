@@ -34,11 +34,19 @@ my $skip = sub {
 	}
 	my $stats = List::Lazy::data($alist)->[1];
 	my $gained = $player->('time')/($stats->length);
-	$stats->set(played => $stats->played()+1, last_played => time);
-	my $new_score = ($stats->time_score*($stats->played()-1)+$gained)/$stats->played;
+	my $played = $stats->played;
+	my $tscore = $stats->time_score;
+	my $l_after = $stats->liked_after;
+	my $d_after = $stats->disliked_after;
+	$played //= 1;
+	$tscore //= 0;
+	$l_after //= "";
+	$d_after //= "";
+	$stats->set(played => $played, last_played => time);
+	my $new_score = ($tscore*($played-1)+$gained)/$played;
 	$stats->set(time_score => $new_score);
-	$stats->set(liked_after => ($stats->liked_after." ".$player->('last'))) if ($gained >= 0.5);
-	$stats->set(disliked_after => ($stats->disliked_after." ".$player->('last'))) if ($gained < 0.5);
+	$stats->set(liked_after => ($l_after." ".$player->('last'))) if ($gained >= 0.5);
+	$stats->set(disliked_after => ($d_after." ".$player->('last'))) if ($gained < 0.5);
 	$stats->update();
 	$player->('last', $stats->id);
 #	$player->stop();
