@@ -8,12 +8,12 @@ Dependencies:
  * DBI
  * Class::DBI::Sweet
  * MP3::Info
- * Ogg::Vorbis::Header
+ * Ogg::Vorbis::Header::PurePerl
  * Audio::FLAC::Header
  * Term::ReadKey 
 
 You can get all these requirements on a Debian-based system with 
- apt-get install mplayer libdbi-perl libmp3-info-perl libogg-vorbis-header-perl libaudio-flac-header-perl libclass-dbi-sweet-perl libterm-readkey-perl
+ apt-get install mplayer libdbi-perl libmp3-info-perl libogg-vorbis-header-pureperl-perl libaudio-flac-header-perl libclass-dbi-sweet-perl libterm-readkey-perl
 
 Play modes:
  Default: shuffle tracks.
@@ -67,3 +67,5 @@ Config file:
 	Edit the "score" section to change weights for song scoring
 	(absolute values do not matter, they will be scaled so that their sum is always 100)
 
+Notes:
+ * If the player shows funny character while running, please check you terminal Unicode support
