@@ -8,7 +8,7 @@ use config;
 use strict;
 use warnings;
 use DBI;
-use uft8;
+use utf8;
 use open ':encoding(UTF-8)', ':std';
 
 ###
