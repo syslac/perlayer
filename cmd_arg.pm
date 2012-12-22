@@ -7,6 +7,7 @@ use score;
 use player;
 use server;
 use config;
+use AnyEvent;
 use POSIX qw/floor ceil/;
 use utf8;
 require list;
@@ -95,6 +96,46 @@ $next = sub {
 	return List::Lazy::node([$loaded, $song], $next);
 };
 
+sub add_timer {
+	my ($player) = @_;
+	my $len = 0;
+	open (my $percent, "+>", ".current_status");
+	return AnyEvent->timer(
+		after => 0,
+		interval => 0.1,
+		cb => sub {
+			ReadMode 'cbreak';
+			if (defined (my $key = ReadKey(-1))){
+				$player->control($key);
+			}
+			$player->('time', $len*0.1);
+			$len++ unless $player->('paused');
+			my $perc = int(100*$player->('time')/$player->('current')->length);
+			seek($percent,-5,2);
+			print $percent sprintf("%02d", $perc)."::". $player->('paused');
+			print "\b"x70;
+			print "|"."#"x(POSIX::ceil($perc/2))."-"x(POSIX::floor((100-$perc)/2))."|";
+			print '('.($player->('paused') ? '||' : ' ▸').')';
+			print "    ".'★'x(10*$player->('current')->user_score);
+			print '☆'x(10-10*$player->('current')->user_score);
+			}
+	);
+}
+
+sub server_input {
+	my ($player,$fh) = @_;
+	return AnyEvent->io(
+		fh => $fh,
+		poll => 'r',
+		cb => sub {
+			my $key = <$fh>;
+			return unless $key;
+			chomp $key;
+			$player->control($key);
+		}
+	);
+}
+
 my $play = sub {
 	my $mode = shift;
 	$mode //= 't';
@@ -109,40 +150,24 @@ my $play = sub {
 		return 1 if ($_[0]->[1]->score(Score::score()) > rand(100));
 		return;
 		}, List::Lazy::node(undef,$next), $player);
-	ReadMode 4;
 	my $server = new Server;
 	open (my $percent, "+>", ".current_status");
 	while (!$player->('quit') && ($plist = $skip->($plist, $player))){
+		my $song_timer = add_timer($player);
 		$player->play(List::Lazy::data($plist)->[0]);
 		$player->('current', List::Lazy::data($plist)->[1]);
-		$player->('playing', 1);
 		$player->('time', 0);
 		my $len = 0;
-		while ($player->('playing')) {
-			if (defined (my $key = ReadKey(-1))){
-				$player->control($key);
-			}
 			while (my $key = $server->()){
 				print "$key\n";
 				$player->control($key);
 			}
-			$player->('time', $len*0.1);
-			$len++ unless $player->('paused');
-			my $perc = int(100*$player->('time')/$player->('current')->length);
-			seek($percent,-5,2);
-			print $percent sprintf("%02d", $perc)."::". $player->('paused');
-			print "\b"x70;
-			print "|"."#"x(POSIX::ceil($perc/2))."-"x(POSIX::floor((100-$perc)/2))."|";
-			print '('.($player->('paused') ? '||' : ' ▸').')';
-			print "    ".'★'x(10*$player->('current')->user_score);
-			print '☆'x(10-10*$player->('current')->user_score);
-			$player->control('e') if($player->finished());
-			sleep(0.1);
-		}
+		$player->('chld')->recv;
+		undef $song_timer;
 	}
 	close $percent;
 	$server->clean();
-	ReadMode 1;
+	ReadMode 'normal';
 };
 
 my $mood = sub {
@@ -176,7 +201,7 @@ my $default = sub {
 sub clean_up {
 	unlink ".server.txt";
 	unlink ".current_status";
-	ReadMode 1;	
+	ReadMode 'normal';	
 }
 
 {

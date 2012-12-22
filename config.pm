@@ -56,7 +56,7 @@ sub init_db {
 
 sub startup_commands {
 	my $cmd = (parse_file($cfg))->{"startup"};
-	open(my $srv, ">", ".server.txt");
+	open(my $srv, ">>", ".server.txt") or die "Cannot write server file";
 	while(my($k,$v) = each($cmd)) {
 		print $srv $k."\n" if $v;
 	}

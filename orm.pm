@@ -167,7 +167,7 @@ sub get_info {
 	my ($file, $ext) = $fields->{'path'} =~ /(.*)?\.(.*)/;
 	my @comments = ("artist", "title", "album", "genre", "tracknumber", "replaygain_track_gain");
 	if (lc($ext) eq "ogg"){
-	my $ogg_info = Ogg::Vorbis::Header->new($fields->{'path'}) or die "Problems with ". $fields->{'path'} . "\n";
+	my $ogg_info = Ogg::Vorbis::Header::PurePerl->new($fields->{'path'}) or die "Problems with ". $fields->{'path'} . "\n";
 	foreach my $tag ($ogg_info->comment_tags() ){
 		if (grep {$_ =~ /$tag/i} @comments){
 			$fields->{lc($tag)} .= ucfirst(lc($_)) foreach ($ogg_info->comment($tag));
@@ -260,6 +260,8 @@ sub create {
 		$folder->update;
 		opendir (DIR, $dir_path);
 		foreach my $file (readdir DIR){
+			use Encode qw(decode);
+			$file = decode "UTF-8", $file;
 			$file = $dir_path ."/".$file;
 			next if ($file =~ /\.{1,2}$/); 
 			push @dirs, $file if (-d $file);

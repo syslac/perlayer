@@ -3,8 +3,11 @@
 package Player;
 use POSIX ':sys_wait_h';	#for WNOHANG in waitpid
 use Term::ReadKey;
+use AnyEvent;
+use strict;
+use warnings;
 
-my (@mplayer_args, $command_fh, $child, $path);
+my (@mplayer_args, $command_fh, $child, $path,$ch_event);
 my $vol = 50;
 
 sub play {
@@ -29,6 +32,15 @@ sub play {
 	}
 	close $rfh;
 	$command_fh->autoflush(1);
+	$ch_event = AnyEvent->child(
+		pid => $child,
+		cb => sub {
+			$self->control('e');
+			$self->('chld')->send;
+			$self->('chld', undef);
+			$self->('chld', AnyEvent->condvar);
+		}
+	);
 #	print "playing $path (process $child)\n";	
 }
 
@@ -72,7 +84,6 @@ sub skip {
 
 {
 my $quit = 0;
-my $playing = 0;
 my $paused = 0;
 my $time = 0;
 my $current = undef;
@@ -82,9 +93,9 @@ my $queue = scalar(@queue);
 my $mode = '';
 my $mood = '';
 my $verbose = 0;
+my $chld = AnyEvent->condvar;
 my %fields = (
 	quit => \$quit,
-	playing => \$playing,
 	paused => \$paused,
 	'time' => \$time,
 	current => \$current,
@@ -93,18 +104,17 @@ my %fields = (
 	queue => \$queue,
 	mood => \$mood,
 	verbose => \$verbose,
+	chld => \$chld,
 	);
 
 my %keys = (
 	n => sub {my $self = shift;
 			$self->skip();
-			$self->('playing', 0);
 			$self->('paused', 0);
 		},
 	N => sub {my $self = shift;
 			my $album = $self->('current')->album;
 			$self->skip();
-			$self->('playing', 0);
 			$self->('paused', 0);
 			return unless @queue;
 			while (Player::Song::User->retrieve($self->from_queue())->album == $album) {
@@ -113,7 +123,6 @@ my %keys = (
 		},
 	e => sub {my $self = shift;
 			$self->stop();
-			$self->('playing', 0);
 			$self->('paused', 0);
 		},
 	a => sub {my $self = shift;
@@ -128,12 +137,12 @@ my %keys = (
 			while ($self->from_queue()) {}
 			print "\nSearch by name:\n";
 			ReadMode 1;
-			$search = ReadLine(0);
+			my $search = ReadLine(0);
 			chomp $search;
 			ReadMode 4;
 			my @result = ();
 			if ($self->('mode') eq 'a') {
-				@album = Player::Album->search_like(title => '%'.$search.'%');
+				my @album = Player::Album->search_like(title => '%'.$search.'%');
 				foreach (@album){
 					push @result, $_->songs;
 				}
@@ -150,7 +159,7 @@ my %keys = (
 			return unless ($self->('mode') eq 'a');
 			print "Assing a tag to this album?\n";
 			ReadMode 1;
-			$tags = ReadLine(0);
+			my $tags = ReadLine(0);
 			chomp $tags;
 			print "Tags assigned: ".$tags."\n";
 			ReadMode 4;
@@ -167,7 +176,6 @@ my %keys = (
 		},
 	q => sub {my $self = shift;
 			$self->stop();
-			$self->('playing', 0);
 			$self->('quit', 1);
 		},
 	Q => sub {my $self = shift;
