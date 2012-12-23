@@ -1,7 +1,8 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
+use autodie;
 use orm;
 use score;
 use player;
@@ -9,6 +10,7 @@ use server;
 use config;
 use AnyEvent;
 use POSIX qw/floor ceil/;
+use Carp qw/confess/;
 use utf8;
 require list;
 
@@ -97,7 +99,7 @@ $next = sub {
 };
 
 sub add_timer {
-	my ($player) = @_;
+	my ($player,$server) = @_;
 	my $len = 0;
 	open (my $percent, "+>", ".current_status");
 	return AnyEvent->timer(
@@ -105,7 +107,8 @@ sub add_timer {
 		interval => 0.1,
 		cb => sub {
 			ReadMode 'cbreak';
-			if (defined (my $key = ReadKey(-1))){
+			while (my $key = $server->()){
+				print "$key\n";
 				$player->control($key);
 			}
 			$player->('time', $len*0.1);
@@ -119,6 +122,19 @@ sub add_timer {
 			print "    ".'★'x(10*$player->('current')->user_score);
 			print '☆'x(10-10*$player->('current')->user_score);
 			}
+	);
+}
+
+sub handle_input {
+	my ($player) = @_;
+	return AnyEvent->io(
+		fh => \*STDIN,
+		poll => 'r',
+		cb => sub {
+			if (defined (my $key = ReadKey(-1))){
+				$player->control($key);
+			}
+		}
 	);
 }
 
@@ -151,22 +167,16 @@ my $play = sub {
 		return;
 		}, List::Lazy::node(undef,$next), $player);
 	my $server = new Server;
+	my $in = handle_input($player);
 	open (my $percent, "+>", ".current_status");
 	while (!$player->('quit') && ($plist = $skip->($plist, $player))){
-		my $song_timer = add_timer($player);
+		my $song_timer = add_timer($player,$server);
 		$player->play(List::Lazy::data($plist)->[0]);
 		$player->('current', List::Lazy::data($plist)->[1]);
-		$player->('time', 0);
-		my $len = 0;
-			while (my $key = $server->()){
-				print "$key\n";
-				$player->control($key);
-			}
 		$player->('chld')->recv;
 		undef $song_timer;
 	}
 	close $percent;
-	$server->clean();
 	ReadMode 'normal';
 };
 
@@ -199,7 +209,7 @@ my $default = sub {
 };
 
 sub clean_up {
-	unlink ".server.txt";
+	unlink ".server.txt" or die "Cannot delete temp server file in cmd_arg: possible permission problem? $!\n";
 	unlink ".current_status";
 	ReadMode 'normal';	
 }

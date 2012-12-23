@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 package Player::ORM;
 use base Class::DBI::Sweet;

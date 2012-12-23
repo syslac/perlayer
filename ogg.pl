@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 
 require list;
@@ -20,10 +20,10 @@ Config::init_db($dbh);
 Config::startup_commands();
 Config::read_weights();
 
-$SIG{__DIE__} =  sub { &CMD::Decision::clean_up(); };
+#$SIG{__DIE__} =  sub { &CMD::Decision::clean_up() };
 
 @ARGV = @{Config::startup_mode()} unless @ARGV;
 my $callback = CMD::Decision::get_callback(@ARGV);
 $callback->[0]->($callback->[1]);
 
-CMD::Decision::clean_up();
+END { CMD::Decision::clean_up(); }
